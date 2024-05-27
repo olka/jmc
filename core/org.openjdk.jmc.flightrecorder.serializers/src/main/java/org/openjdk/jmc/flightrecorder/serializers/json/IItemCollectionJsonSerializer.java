@@ -60,6 +60,8 @@ import org.openjdk.jmc.common.item.ItemToolkit;
 public class IItemCollectionJsonSerializer extends JsonWriter {
 	private final static Logger LOGGER = Logger.getLogger("org.openjdk.jmc.flightrecorder.json");
 
+	private final boolean skipStacktraces;
+
 	public static String toJsonString(IItemCollection items) {
 		StringWriter sw = new StringWriter();
 		IItemCollectionJsonSerializer marshaller = new IItemCollectionJsonSerializer(sw);
@@ -72,8 +74,12 @@ public class IItemCollectionJsonSerializer extends JsonWriter {
 	}
 
 	public static String toJsonString(IItemCollection items, BooleanSupplier stopFlag) {
+		return toJsonString(items, stopFlag, false);
+	}
+
+	public static String toJsonString(IItemCollection items, BooleanSupplier stopFlag, boolean skipStacktraces) {
 		StringWriter sw = new StringWriter();
-		IItemCollectionJsonSerializer marshaller = new IItemCollectionJsonSerializer(sw);
+		IItemCollectionJsonSerializer marshaller = new IItemCollectionJsonSerializer(sw, skipStacktraces);
 		try {
 			marshaller.writeRecording(items, stopFlag);
 		} catch (IOException e) {
@@ -95,6 +101,12 @@ public class IItemCollectionJsonSerializer extends JsonWriter {
 
 	private IItemCollectionJsonSerializer(Writer w) {
 		super(w);
+		this.skipStacktraces = false;
+	}
+
+	private IItemCollectionJsonSerializer(Writer p, boolean skipStacktraces) {
+		super(p);
+		this.skipStacktraces = skipStacktraces;
 	}
 
 	private void writeRecording(IItemCollection recording) throws IOException {
@@ -197,7 +209,8 @@ public class IItemCollectionJsonSerializer extends JsonWriter {
 			IAccessorKey<?> attribute = e.getKey();
 			Object value = accessor.getMember(event);
 			if (value instanceof IMCStackTrace) {
-				writeStackTrace(first, (IMCStackTrace) value);
+				if(!this.skipStacktraces)
+					writeStackTrace(first, (IMCStackTrace) value);
 			} else {
 				writeField(first, attribute.getIdentifier(), value);
 			}

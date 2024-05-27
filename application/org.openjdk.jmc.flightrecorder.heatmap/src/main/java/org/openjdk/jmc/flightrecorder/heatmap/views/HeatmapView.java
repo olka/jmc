@@ -108,7 +108,7 @@ public class HeatmapView extends ViewPart implements ISelectionListener {
 				if (isInvalid) {
 					return;
 				}
-				String eventsJson = IItemCollectionJsonSerializer.toJsonString(items, () -> isInvalid);
+				String eventsJson = IItemCollectionJsonSerializer.toJsonString(items, () -> isInvalid, true);
 				if (isInvalid) {
 					return;
 				} else {
